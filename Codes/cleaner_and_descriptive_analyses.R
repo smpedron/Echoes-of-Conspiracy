@@ -47,7 +47,7 @@ p_supports1 <- ggplot(supports_data, aes(x = as.numeric(Year), y = count, color 
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   scale_color_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
-  scale_x_continuous(limits = c(2009, 2025), breaks = 2010:2025) +
+  scale_x_continuous(limits = c(2010, 2025), breaks = 2010:2025) +
   labs(
     title = "SUPPORTS",
     x = "Year",
@@ -197,5 +197,6 @@ p_rejects3 <- ggplot(rejects_data, aes(x = Congress, y = count, color = Party)) 
 p_supports3 / p_rejects3 + plot_layout(ncol = 1)
 
 #
+
 
 
