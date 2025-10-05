@@ -54,15 +54,27 @@ classify_newsletter <- function(newsletter_text, training_data) {
   reply_lines <- capture.output(print(last_turn))
   reply_text <- paste(reply_lines, collapse = "\n")
   
-  trimws(reply_text)
+  #trimws(reply_text)
+  # Extract the values using regex
+  talks <- ifelse(grepl("TalksAboutDeepState: 1", reply_text), 1, 0)
+  stance <- sub(".*Stance: (.*)", "\\1", reply_text)
+  
+  return(c(TalksAboutDeepState = talks, Stance = stance))
 }
 
+#
 
-## Run
-exp_data$categorization <- sapply(exp_data$Body, function(text) {
-  classify_newsletter(text, training_data)
-})
+###### Running LLM #####
+dc_data$TalksAboutDeepState <- NA
+dc_data$Stance <- NA
 
-## extract into separate variables
-exp_data$TalksAboutDeepState <- str_match(exp_data$categorization, "TalksAboutDeepState: ([01])")[,2]
-exp_data$Stance <- str_match(exp_data$categorization, "Stance: ([A-Z ]+)")[,2]
+for (i in seq_len(nrow(dc_data))) {
+  cat("Classifying newsletter ", i, " of ", nrow(dc_data), "\n")
+  result <- classify_newsletter(dc_data$Body[i], training_data)
+  dc_data$TalksAboutDeepState[i] <- result["TalksAboutDeepState"]
+  dc_data$Stance[i] <- result["Stance"]
+}
+
+write.csv(dc_data, "dc_data_coded.csv", row.names = F)
+
+head(dc_data)
