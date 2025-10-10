@@ -63,20 +63,21 @@ elect$Congress <- 117
 
 dc_data <- dc_data %>%
   left_join(
-    elect %>% select(First.Name, Last.Name, Congress, certify_2020_election),
-    by = c("First.Name", "Last.Name", "Congress"))
+    elect %>% 
+      filter(Congress == 117) %>%
+      select(First.Name, Last.Name, certify_2020_election), by = c("First.Name", "Last.Name"))
 
-table(dc_data$certify_2020_election)
+table(dc_data$certify_2020_election, useNA = "always")
 
 rm(elect)
 
-## Primary Endorsement by Trump
+## Endorsement by Trump
 setwd("C:/Users/steph/Documents/Courses/PhD/Research Projects/Conspiratorial Rhetoric (Miller)")
 trump_endorsements <- read.csv("trump_endorsements.csv")
 
 dc_data <- dc_data %>%
-  mutate(trump_endorsed = if_else(
-    paste(First.Name, Last.Name) %in% paste(trump_endorsements$First.Name, trump_endorsements$Last.Name), "Yes", "No"))
+  mutate(trump_endorsed = if_else(Year < 2018, NA_character_,
+    if_else(paste(First.Name, Last.Name) %in% paste(trump_endorsements$First.Name, trump_endorsements$Last.Name), "Yes", "No")))
 
 table(dc_data$trump_endorsed, dc_data$Party)
 
