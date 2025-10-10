@@ -4,6 +4,129 @@ rm(list=ls())
 
 source("C:/Users/steph/Documents/Courses/PhD/Research Projects/Conspiratorial Rhetoric (Miller)/Codes/cleaner_and_merger.r")
 
+
+table(dc_data$jan_6_in_office, dc_data$Stance, useNA = "always")
+table(dc_data$trump_endorsed, dc_data$Stance, useNA = "always")
+table(dc_data$Party, dc_data$TalksAboutDeepState)
+
+library(multiwayvcov)
+library(lmtest)
+
+model1 <- glm(TalksAboutDeepState ~ nominate_dim1 + nominate_dim2 + Gender + jan_6_in_office +
+              trump_endorsed + certify_2020_election, 
+            dc_data, family = binomial(link = "logit"))
+vcov_2way <- cluster.vcov(model1, cbind(dc_data$BioGuide.ID, dc_data$Chamber)) # cluster by congress member and chamber
+coeftest(model1, vcov = vcov_2way)
+
+
+#
+##### DW-NOMINATE SCORE #####
+
+## NOMINATE DIM 1
+## Bin NOMINATE dimension one (-1 to 1 in 0.1 increments)
+dc_data_binned <- dc_data %>%
+  filter(Stance != "Not Applicable") %>%
+  mutate(nominate_bin = cut(
+    nominate_dim1,
+    breaks = seq(-1, 1, by = 0.1),
+    include.lowest = TRUE,
+    right = FALSE
+  )) %>%
+  group_by(nominate_bin, Party, Stance) %>%
+  summarise(count = n(), .groups = "drop")
+
+supports_data <- subset(dc_data_binned, Stance == "SUPPORTS")
+rejects_data  <- subset(dc_data_binned, Stance == "REJECTS")
+
+## SUPPORTS plot
+p_supports <- ggplot(supports_data, aes(x = nominate_bin, y = count, fill = Party)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
+  labs(
+    title = "SUPPORTS",
+    x = "Ideology (NOMINATE Dimension 1, binned)",
+    y = "Number of Newsletters",
+    fill = "Party"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 13),
+    axis.text.x = element_text(size = 7, angle = 45, hjust = 1),
+    panel.background = element_rect(fill = "grey97", color = "grey97")
+  )
+
+## REJECTS plot
+p_rejects <- ggplot(rejects_data, aes(x = nominate_bin, y = count, fill = Party)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
+  labs(
+    title = "REJECTS",
+    x = "Ideology (NOMINATE Dimension 1, binned)",
+    y = "Number of Newsletters",
+    fill = "Party"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 13),
+    axis.text.x = element_text(size = 7, angle = 45, hjust = 1),
+    panel.background = element_rect(fill = "grey97", color = "grey97")
+  )
+
+## Combine
+p_supports / p_rejects + plot_layout(ncol = 1)
+
+
+
+## NOMINATE DIM 2
+dc_data_binned <- dc_data %>%
+  filter(Stance != "Not Applicable") %>%
+  mutate(nominate_bin = cut(
+    nominate_dim2,
+    breaks = seq(-1, 1, by = 0.1),
+    include.lowest = TRUE,
+    right = FALSE
+  )) %>%
+  group_by(nominate_bin, Party, Stance) %>%
+  summarise(count = n(), .groups = "drop")
+
+supports_data <- subset(dc_data_binned, Stance == "SUPPORTS")
+rejects_data  <- subset(dc_data_binned, Stance == "REJECTS")
+
+p_supports <- ggplot(supports_data, aes(x = nominate_bin, y = count, fill = Party)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
+  labs(
+    title = "SUPPORTS",
+    x = "Ideology (NOMINATE Dimension 1, binned)",
+    y = "Number of Newsletters",
+    fill = "Party"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 13),
+    axis.text.x = element_text(size = 7, angle = 45, hjust = 1),
+    panel.background = element_rect(fill = "grey97", color = "grey97")
+  )
+
+p_rejects <- ggplot(rejects_data, aes(x = nominate_bin, y = count, fill = Party)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
+  labs(
+    title = "REJECTS",
+    x = "Ideology (NOMINATE Dimension 2, binned)",
+    y = "Number of Newsletters",
+    fill = "Party"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 13),
+    axis.text.x = element_text(size = 7, angle = 45, hjust = 1),
+    panel.background = element_rect(fill = "grey97", color = "grey97")
+  )
+
+p_supports / p_rejects + plot_layout(ncol = 1)
+
+#
 ##### BY YEAR AND PARTY ######
 setwd("C:/Users/steph/Documents/Courses/PhD/Research Projects/Conspiratorial Rhetoric (Miller)")
 
