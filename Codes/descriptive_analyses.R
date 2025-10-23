@@ -2,8 +2,21 @@
 
 rm(list=ls())
 
-source("C:/Users/steph/Documents/Courses/PhD/Research Projects/Conspiratorial Rhetoric (Miller)/Codes/cleaner_and_merger.r")
 
+library(dplyr)
+library(magrittr)
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+library(scales)
+library(maps)
+library(usdata)
+
+
+# source("C:/Users/steph/Documents/Courses/PhD/Research Projects/Conspiratorial Rhetoric (Miller)/Codes/cleaner_and_merger.r")
+setwd("C:/Users/steph/Documents/Courses/PhD/Research Projects/Conspiratorial Rhetoric (Miller)")
+dc_data <- read.csv("dc_data_merged.csv")
 
 table(dc_data$jan_6_in_office, dc_data$Stance, useNA = "always")
 table(dc_data$trump_endorsed, dc_data$Stance, useNA = "always")
@@ -44,7 +57,7 @@ p_supports <- ggplot(supports_data, aes(x = nominate_bin, y = count, fill = Part
   scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
   labs(
     title = "SUPPORTS",
-    x = "Ideology (NOMINATE Dimension 1, binned)",
+    x = "DW-NOMINATE Dimension 1",
     y = "Number of Newsletters",
     fill = "Party"
   ) +
@@ -61,7 +74,7 @@ p_rejects <- ggplot(rejects_data, aes(x = nominate_bin, y = count, fill = Party)
   scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
   labs(
     title = "REJECTS",
-    x = "Ideology (NOMINATE Dimension 1, binned)",
+    x = "DW-NOMINATE Dimension 1",
     y = "Number of Newsletters",
     fill = "Party"
   ) +
@@ -97,7 +110,7 @@ p_supports <- ggplot(supports_data, aes(x = nominate_bin, y = count, fill = Part
   scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
   labs(
     title = "SUPPORTS",
-    x = "Ideology (NOMINATE Dimension 1, binned)",
+    x = "DW-NOMINATE Dimension 2",
     y = "Number of Newsletters",
     fill = "Party"
   ) +
@@ -113,7 +126,7 @@ p_rejects <- ggplot(rejects_data, aes(x = nominate_bin, y = count, fill = Party)
   scale_fill_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
   labs(
     title = "REJECTS",
-    x = "Ideology (NOMINATE Dimension 2, binned)",
+    x = "DW-NOMINATE Dimension 2",
     y = "Number of Newsletters",
     fill = "Party"
   ) +
@@ -136,6 +149,7 @@ year_to_congress <- data.frame(
                rep(115, 2), rep(116, 2), rep(117, 2), rep(118, 2), 119))
 
 year_to_congress$Year <- as.character(year_to_congress$Year)
+dc_data$Year <- as.character(dc_data$Year)
 
 stance_by_year_party <- dc_data %>%
   filter(Stance != "Not Applicable") %>%  
@@ -192,6 +206,7 @@ year_to_congress <- data.frame(
                rep(115, 2), rep(116, 2), rep(117, 2), rep(118, 2), 119))
 
 year_to_congress$Year <- as.character(year_to_congress$Year)
+dc_data$Year <- as.character(dc_data$Year)
 
 stance_by_year_chamber <- dc_data %>%
   filter(Stance != "Not Applicable") %>%  
@@ -239,64 +254,6 @@ p_supports2 / p_rejects2 + plot_layout(ncol = 1)
 
 
 #
-##### BY CONGRESS NUMBER & PARTY #####
-
-## Subset
-stance_by_congress_party <- dc_data %>%
-  filter(Stance != "Not Applicable") %>%  
-  group_by(Congress, Party, Stance) %>%
-  summarise(count = n(), .groups = "drop")
-
-supports_data <- subset(stance_by_congress_party, Stance == "SUPPORTS")
-rejects_data  <- subset(stance_by_congress_party, Stance == "REJECTS")
-
-## Plot SUPPORTS
-p_supports3 <- ggplot(supports_data, aes(x = Congress, y = count, color = Party)) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  scale_color_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
-  scale_x_continuous(limits = c(111, 119), breaks = 111:119) +
-  labs(
-    title = "SUPPORTS",
-    x = "Congress",
-    y = "Number of Newsletters",
-    color = "Party"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(face = "bold", size = 13),
-    axis.text.y = element_text(size = 11, hjust = 0),
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.background = element_rect(fill = "grey97", color = "grey97"),
-    strip.background  = element_rect(fill = "grey97", color = "grey97")
-  )
-
-## Plot REJECTS
-p_rejects3 <- ggplot(rejects_data, aes(x = Congress, y = count, color = Party)) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  scale_color_manual(values = c("Democrat" = "blue", "Republican" = "red")) +
-  scale_x_continuous(limits = c(111, 119), breaks = 111:119) +
-  labs(
-    title = "REJECTS",
-    x = "Congress",
-    y = "Number of Newsletters",
-    color = "Party"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(face = "bold", size = 13),
-    axis.text.y = element_text(size = 11, hjust = 0),
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.background = element_rect(fill = "grey97", color = "grey97"),
-    strip.background  = element_rect(fill = "grey97", color = "grey97")
-  )
-
-## stack
-p_supports3 / p_rejects3 + plot_layout(ncol = 1)
-
-#
-
 ##### State Heatmap ######
 
 us_map <- map_data("state")
